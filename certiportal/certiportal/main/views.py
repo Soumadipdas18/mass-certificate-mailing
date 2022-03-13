@@ -161,11 +161,11 @@ def send_email(request , alcher_id, certificate_url):
 
 
 def readDataFromCSV(csv_file):
+    # print("AA")
     event_choices_list = [x[0] for x in EVENT_OPTIONS]
     certificate_choices_list = [x[0] for x in CERTIFICATE_OPTIONS]
     file_data = csv_file.read().decode("utf-8") 
     lines = file_data.split("\n")
-    
     skipped_candids = []
     for line in lines:
         fields = line.split(",")
@@ -181,7 +181,7 @@ def readDataFromCSV(csv_file):
         event = fields[5].strip()
         year = fields[6].strip()
         email = fields[7].strip()
-
+        # print(alcher_id,name,certificate_type,position,college,event,year,email)
         try:
             if position:
                 position = int(position)
@@ -194,11 +194,11 @@ def readDataFromCSV(csv_file):
         except (ValidationError, ValueError) as e :
             skipped_candids.append((alcher_id,event))
             continue
-
         if certificate_type not in certificate_choices_list or event not in event_choices_list:
             skipped_candids.append((alcher_id,event))
             continue
-
+        # print(position)
+       
         if not isDuplicate(alcher_id, event, certificate_type, year):
             new_url = generateUrl(alcher_id, year)
             candidate.objects.create(alcher_id=alcher_id, name=name, event=event, 
@@ -223,6 +223,8 @@ def candidBulk(request):
                 messages.error(request,"ERROR!! Uploaded file is too big (%.2f MB)." % (csv_file.size/(1000*1000))) 
                 return redirect('candidBulk')
             skipped_candids = readDataFromCSV(csv_file)
+
+
             if len(skipped_candids)>0:
                 context['skipped_candids'] = skipped_candids,
             messages.success(request, 'SUCCESS!! Data uploaded')
