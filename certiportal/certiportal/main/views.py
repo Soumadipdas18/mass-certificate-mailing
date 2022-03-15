@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .models import *
 from .render import Render
 from .forms import *
+from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.contrib import messages
@@ -35,7 +36,7 @@ def certificate(request, cert_id):
         # DO SOMETHING 
         return redirect('certificateNotFound')
 
-    context = {
+    context = { 
         'candid_name' : candid.name,
         'candid_event' : candid.event,
         'candid_position': candid.position,
@@ -48,9 +49,9 @@ def certificate(request, cert_id):
         return Render.render('certificate/certificateSA.html',context)
     elif candid.certificate_type == 'P': 
         return Render.render('certificate/certificateParticipation.html', context)
-    elif candid.certificate_type == 'CA': 
+    elif candid.certificate_type == 'CA':
         return Render.render('certificate/certificateCA.html', context)
-    elif candid.certificate_type == 'W': 
+    elif candid.certificate_type == 'W':
         return Render.render('certificate/certificateWinner.html', context)
     elif candid.certificate_type == 'MP':
         return Render.render('certificate/certificateManshaktiParticipant.html',context)
@@ -151,7 +152,7 @@ def send_email(request , alcher_id, certificate_url):
     send_mail(
         'Certificate Alcheringa: ' + str(current_year()),
         content,
-        'publicrelations@alcheringa.in',
+        settings.EMAIL_HOST_USER,
         [candid.email],
         fail_silently = False,
         )
@@ -301,16 +302,16 @@ def candidListFilter(request, id):
 from django.core.mail import send_mass_mail
 
 @login_required
-def massmail(request,event_name):
-    if event_name == 'none':
-        candids = candidate.objects.filter(year=current_year())
-        context = {'candids': candids,
-        'event_name' : 'none',}
-        return render(request, 'main/candidlist.html', context)
+def massmail(request):
+    # if event_name == 'none':
+    #     candids = candidate.objects.filter(year=current_year())
+    #     context = {'candids': candids,
+    #     'event_name' : 'none',}
+    #     return render(request, 'main/candidlist.html', context)
 
-    candids = candidate.objects.filter(year=current_year(), event=event_name)
+    candids = candidate.objects.filter(year=current_year())
     message_list = []
-    
+    content="A"
     for candid in candids:
         context = {'candid' : candid, }
         subject = 'Certificate Alcheringa: ' + str(current_year())
@@ -327,7 +328,7 @@ def massmail(request,event_name):
         elif candid.certificate_type == 'MP':
             content = render_to_string('main/emails/mailmsparticipant.txt', context)
 
-        sender = 'publicrelations@alcheringa.in'
+        sender = settings.EMAIL_HOST_USER
         recipient = [candid.email]
         message  = (subject, content , sender , recipient)
         message_list.append(message)
@@ -339,7 +340,7 @@ def massmail(request,event_name):
         'candids': candids,
         'event_name' : 'none'
     }
-    return render(request, 'main/candidlist.html', context)
+    return redirect('candidList')
 
 
 
@@ -362,7 +363,7 @@ def massmailca(request):
         context = {'candid' : candid, }
         subject = 'Certificate Alcheringa: ' + str(current_year())
         content = render_to_string('main/emails/mailca.txt', context)
-        sender = 'publicrelations@alcheringa.in'
+        sender = settings.EMAIL_HOST_USER
         recipient = [candid.email]
         message  = (subject, content , sender , recipient)
         message_list.append(message)
@@ -395,7 +396,7 @@ def massmailsa(request):
         context = {'candid' : candid, }
         subject = 'Certificate Alcheringa: ' + str(current_year())
         content = render_to_string('main/emails/mailsa.txt', context)
-        sender = 'publicrelations@alcheringa.in'
+        sender = settings.EMAIL_HOST_USER
         recipient = [candid.email]
         message  = (subject, content , sender , recipient)
         message_list.append(message)
